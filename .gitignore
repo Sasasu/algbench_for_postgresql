@@ -1,0 +1,16 @@
+# Build directory
+build*/
+*.so
+*.o
+*.bc
+
+# The tests results
+results/
+
+# For IDE/Editors
+.vscode
+.idea
+tags
+cscope*
+.ccls-cache/
+compile_commands.json
