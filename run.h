@@ -19,6 +19,23 @@ extern "C" {
 	add(list_iter);
 	add(list_append);
 
+	add(hash_set_alloc);
+	add(hash_set_noalloc);
+	add(hash_get_rand);
+	add(hash_get_scan);
+	add(hash_delete);
+
+	add(functioncall_1);
+	add(functioncall_3);
+	add(functioncall_7);
+	add(functioncall_9);
+
+	add(memoryalloc_small);
+	add(memoryalloc_big);
+	add(memoryalloc_free);
+
+	add(regex);
+
 #undef add
 #ifdef __cplusplus
 }

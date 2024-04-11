@@ -1,7 +1,11 @@
 #include "run.h"
 
-#include <boost/dynamic_bitset.hpp>
+#include <cstdint>
 #include <list>
+#include <tuple>
+#include <unordered_map>
+
+#include <boost/dynamic_bitset.hpp>
 
 using namespace std;
 using namespace boost;
@@ -124,6 +128,131 @@ long long cpp_list_append(void) {
   TIME_START;
   for (int i = 0; i < NNN / 10; ++i) {
     _cpp_list_append(a);
+  }
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+static void _cpp_hash_set(unordered_map<int32_t, int32_t> &htab) {
+  for (int i = 0; i < NNN; ++i) {
+    htab[i] = i;
+  }
+}
+
+long long cpp_hash_set_alloc(void) {
+  unordered_map<int32_t, int32_t> a;
+
+  TIME_START;
+  _cpp_hash_set(a);
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long cpp_hash_set_noalloc(void) {
+  unordered_map<int32_t, int32_t> a(NNN);
+
+  TIME_START;
+  _cpp_hash_set(a);
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long cpp_hash_get_rand(void) {
+  unordered_map<int32_t, int32_t> a(NNN);
+  _cpp_hash_set(a);
+
+  TIME_START;
+  for (int i = 0; i < NNN; ++i) {
+    x += a[i];
+  }
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long cpp_hash_get_scan(void) {
+  unordered_map<int32_t, int32_t> a(NNN);
+  _cpp_hash_set(a);
+
+  TIME_START;
+  for (auto i : a) {
+    x += i.second;
+  }
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long cpp_hash_delete(void) {
+  unordered_map<int32_t, int32_t> a(NNN);
+  _cpp_hash_set(a);
+
+  TIME_START;
+  for (int i = 0; i < NNN; ++i) {
+    a.erase(i);
+  }
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+int sum1(int a) { return a; }
+int sum3(int a, int b, int c) { return a + b + c; }
+int sum7(int a, int b, int c, int d, int e, int f, int g) {
+  return a + b + c + d + e + f + g;
+}
+int sum9(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j) {
+  return a + b + c + d + e + f + g + h + i + g;
+}
+
+static tuple<decltype(&sum1), decltype(&sum3), decltype(&sum7), decltype(&sum9)>
+    f(sum1, sum3, sum7, sum9);
+
+long long cpp_functioncall_1(void) {
+  int a = 1;
+
+  TIME_START;
+  for (int i = 0; i < NNN * 10000; ++i) {
+    x += get<0>(f)(a);
+  }
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long cpp_functioncall_3(void) {
+  int a = 1;
+
+  TIME_START;
+  for (int i = 0; i < NNN * 10000; ++i) {
+    x += get<1>(f)(a, a, a);
+  }
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long cpp_functioncall_7(void) {
+  int a = 1;
+
+  TIME_START;
+  for (int i = 0; i < NNN * 10000; ++i) {
+    x += get<2>(f)(a, a, a, a, a, a, a);
+  }
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long cpp_functioncall_9(void) {
+  int a = 1;
+
+  TIME_START;
+  for (int i = 0; i < NNN * 10000; ++i) {
+    x += get<3>(f)(a, a, a, a, a, a, a, a, a, a);
   }
   TIME_END;
 

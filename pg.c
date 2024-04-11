@@ -1,7 +1,12 @@
 #include "postgres.h"
 
+#include "fmgr.h"
 #include "nodes/bitmapset.h"
 #include "nodes/pg_list.h"
+#include "utils/hsearch.h"
+#include "utils/palloc.h"
+
+#include <stdint.h>
 
 #include "run.h"
 
@@ -133,11 +138,181 @@ static List *_pg_list_append(List *a) {
 long long pg_list_append(void) {
   List *a = NIL;
 
-  TIME_START
+  TIME_START;
   for (int i = 0; i < NNN / 10; ++i) {
     a = _pg_list_append(a);
   }
   TIME_END;
 
+  TIME_RETURN;
+}
+
+static void _pg_hash_set(HTAB *htab) {
+  for (int i = 0; i < NNN; ++i) {
+    int64_t kv = ((int64_t)i << 32) + i;
+    hash_search(htab, &kv, HASH_ENTER, NULL);
+  }
+}
+
+long long pg_hash_set_alloc(void) {
+  HASHCTL ctl = {
+      .keysize = sizeof(int32_t),
+      .entrysize = sizeof(int32_t),
+      .hcxt = CurrentMemoryContext,
+      .hash = tag_hash,
+  };
+
+  HTAB *htab =
+      hash_create("htab", 0, &ctl, HASH_ELEM | HASH_CONTEXT | HASH_FUNCTION);
+
+  TIME_START;
+  _pg_hash_set(htab);
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long pg_hash_set_noalloc(void) {
+  HASHCTL ctl = {
+      .keysize = sizeof(int32_t),
+      .entrysize = sizeof(int32_t),
+      .hcxt = CurrentMemoryContext,
+      .hash = tag_hash,
+  };
+
+  HTAB *htab = hash_create("htab", NNN * 100, &ctl,
+                           HASH_ELEM | HASH_CONTEXT | HASH_FUNCTION);
+
+  TIME_START;
+  _pg_hash_set(htab);
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long pg_hash_get_rand(void) {
+  HASHCTL ctl = {
+      .keysize = sizeof(int32_t),
+      .entrysize = sizeof(int32_t),
+      .hcxt = CurrentMemoryContext,
+      .hash = tag_hash,
+  };
+  HTAB *htab =
+      hash_create("htab", NNN, &ctl, HASH_ELEM | HASH_CONTEXT | HASH_FUNCTION);
+
+  _pg_hash_set(htab);
+
+  TIME_START;
+  for (int i = 0; i < NNN; ++i) {
+    int64_t *p = hash_search(htab, &i, HASH_FIND, NULL);
+    x += *p;
+  }
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long pg_hash_get_scan(void) {
+  HASHCTL ctl = {
+      .keysize = sizeof(int32_t),
+      .entrysize = sizeof(int32_t),
+      .hcxt = CurrentMemoryContext,
+      .hash = tag_hash,
+  };
+  HTAB *htab =
+      hash_create("htab", NNN, &ctl, HASH_ELEM | HASH_CONTEXT | HASH_FUNCTION);
+
+  _pg_hash_set(htab);
+
+  TIME_START;
+  HASH_SEQ_STATUS s;
+  uint64_t *t;
+  hash_seq_init(&s, htab);
+  while ((t = hash_seq_search(&s)) != NULL) {
+    x += *t;
+  }
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long pg_hash_delete(void) {
+  HASHCTL ctl = {
+      .keysize = sizeof(int32_t),
+      .entrysize = sizeof(int32_t),
+      .hcxt = CurrentMemoryContext,
+      .hash = tag_hash,
+  };
+  HTAB *htab =
+      hash_create("htab", NNN, &ctl, HASH_ELEM | HASH_CONTEXT | HASH_FUNCTION);
+
+  _pg_hash_set(htab);
+
+  TIME_START;
+  for (int i = 0; i < NNN; ++i) {
+    hash_search(htab, &i, HASH_REMOVE, NULL);
+  }
+
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+static Datum sum1(PG_FUNCTION_ARGS) { PG_RETURN_INT32(PG_GETARG_INT32(0)); }
+static Datum sum3(PG_FUNCTION_ARGS) {
+  PG_RETURN_INT32(PG_GETARG_INT32(0) + PG_GETARG_INT32(1) + PG_GETARG_INT32(2));
+}
+static Datum sum7(PG_FUNCTION_ARGS) {
+  PG_RETURN_INT32(PG_GETARG_INT32(0) + PG_GETARG_INT32(1) + PG_GETARG_INT32(2) +
+                  PG_GETARG_INT32(3) + PG_GETARG_INT32(4) + PG_GETARG_INT32(5) +
+                  PG_GETARG_INT32(6));
+}
+static Datum sum9(PG_FUNCTION_ARGS) {
+  PG_RETURN_INT32(PG_GETARG_INT32(0) + PG_GETARG_INT32(1) + PG_GETARG_INT32(2) +
+                  PG_GETARG_INT32(3) + PG_GETARG_INT32(4) + PG_GETARG_INT32(5) +
+                  PG_GETARG_INT32(6) + PG_GETARG_INT32(7) + PG_GETARG_INT32(8));
+}
+
+long long pg_functioncall_1(void) {
+  Datum a = Int32GetDatum(1);
+
+  TIME_START;
+  for (int i = 0; i < NNN * 10000; ++i) {
+    x += DirectFunctionCall1(sum1, a);
+  }
+  TIME_END;
+  TIME_RETURN;
+}
+
+long long pg_functioncall_3(void) {
+  Datum a = Int32GetDatum(1);
+
+  TIME_START;
+  for (int i = 0; i < NNN * 10000; ++i) {
+    x += DirectFunctionCall3(sum3, a, a, a);
+  }
+  TIME_END;
+  TIME_RETURN;
+}
+
+long long pg_functioncall_7(void) {
+  Datum a = Int32GetDatum(1);
+
+  TIME_START;
+  for (int i = 0; i < NNN * 10000; ++i) {
+    x += DirectFunctionCall7(sum7, a, a, a, a, a, a, a);
+  }
+  TIME_END;
+  TIME_RETURN;
+}
+
+long long pg_functioncall_9(void) {
+  Datum a = Int32GetDatum(1);
+
+  TIME_START;
+  for (int i = 0; i < NNN * 10000; ++i) {
+    x += DirectFunctionCall9(sum9, a, a, a, a, a, a, a, a, a);
+  }
+  TIME_END;
   TIME_RETURN;
 }
