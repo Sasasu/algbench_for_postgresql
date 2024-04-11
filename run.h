@@ -11,38 +11,37 @@ extern "C" {
   long long pg_##n(void);                                                      \
   long long cpp_##n(void);
 
-	add(bitmapset_compare);
-	add(bitmapset_is_subset);
-	add(bitmapset_add_member);
+add(bitmapset_compare);
+add(bitmapset_is_subset);
+add(bitmapset_add_member);
 
-	add(list_sort);
-	add(list_iter);
-	add(list_append);
+add(list_sort);
+add(list_iter);
+add(list_append);
 
-	add(hash_set_alloc);
-	add(hash_set_noalloc);
-	add(hash_get_rand);
-	add(hash_get_scan);
-	add(hash_delete);
+add(hash_set_alloc);
+add(hash_set_noalloc);
+add(hash_get_rand);
+add(hash_get_scan);
+add(hash_delete);
 
-	add(functioncall_1);
-	add(functioncall_3);
-	add(functioncall_7);
-	add(functioncall_9);
+add(functioncall_1);
+add(functioncall_2);
+add(functioncall_7);
+add(functioncall_9);
 
-	add(memoryalloc_small);
-	add(memoryalloc_big);
-	add(memoryalloc_free);
+add(memoryalloc_small);
+add(memoryalloc_big);
+add(memoryalloc_free);
+add(memoryalloc_free_b);
 
-	add(regex);
+add(regex);
 
 #undef add
 #ifdef __cplusplus
 }
 #endif
 
-// hashtable
-// functioncall
 // memoryalloc
 //
 // regex

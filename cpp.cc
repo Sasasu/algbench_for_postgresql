@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <list>
+#include <memory_resource>
 #include <tuple>
 #include <unordered_map>
 
@@ -9,6 +10,7 @@
 
 using namespace std;
 using namespace boost;
+using std::pmr::unsynchronized_pool_resource;
 
 static int x = 0;
 
@@ -81,8 +83,8 @@ void _cpp_list_sort(list<int> &a) { a.sort(); }
 long long cpp_list_sort(void) {
   list<int> a;
 
-  for (int i = 0; i < NNN * 100; i++) {
-    a.push_back(NNN * 100 - i);
+  for (int i = 0; i < NNN * 10; i++) {
+    a.push_back(NNN * 10 - i);
   }
 
   TIME_START;
@@ -200,7 +202,7 @@ long long cpp_hash_delete(void) {
 }
 
 int sum1(int a) { return a; }
-int sum3(int a, int b, int c) { return a + b + c; }
+int sum2(int a, int b) { return a + b; }
 int sum7(int a, int b, int c, int d, int e, int f, int g) {
   return a + b + c + d + e + f + g;
 }
@@ -208,14 +210,14 @@ int sum9(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j) {
   return a + b + c + d + e + f + g + h + i + g;
 }
 
-static tuple<decltype(&sum1), decltype(&sum3), decltype(&sum7), decltype(&sum9)>
-    f(sum1, sum3, sum7, sum9);
+static tuple<decltype(&sum1), decltype(&sum2), decltype(&sum7), decltype(&sum9)>
+    f(sum1, sum2, sum7, sum9);
 
 long long cpp_functioncall_1(void) {
   int a = 1;
 
   TIME_START;
-  for (int i = 0; i < NNN * 10000; ++i) {
+  for (int i = 0; i < NNN; ++i) {
     x += get<0>(f)(a);
   }
   TIME_END;
@@ -223,12 +225,12 @@ long long cpp_functioncall_1(void) {
   TIME_RETURN;
 }
 
-long long cpp_functioncall_3(void) {
+long long cpp_functioncall_2(void) {
   int a = 1;
 
   TIME_START;
-  for (int i = 0; i < NNN * 10000; ++i) {
-    x += get<1>(f)(a, a, a);
+  for (int i = 0; i < NNN; ++i) {
+    x += get<1>(f)(a, a);
   }
   TIME_END;
 
@@ -239,7 +241,7 @@ long long cpp_functioncall_7(void) {
   int a = 1;
 
   TIME_START;
-  for (int i = 0; i < NNN * 10000; ++i) {
+  for (int i = 0; i < NNN; ++i) {
     x += get<2>(f)(a, a, a, a, a, a, a);
   }
   TIME_END;
@@ -251,9 +253,71 @@ long long cpp_functioncall_9(void) {
   int a = 1;
 
   TIME_START;
-  for (int i = 0; i < NNN * 10000; ++i) {
+  for (int i = 0; i < NNN; ++i) {
     x += get<3>(f)(a, a, a, a, a, a, a, a, a, a);
   }
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long cpp_memoryalloc_small(void) {
+  unsynchronized_pool_resource pool = unsynchronized_pool_resource();
+
+  TIME_START;
+  for (int i = 0; i < NNN; ++i) {
+    (void)pool.allocate(i);
+  }
+  TIME_END;
+
+  pool.release();
+
+  TIME_RETURN;
+}
+
+long long cpp_memoryalloc_big(void) {
+  void *prt[NNN] = {};
+
+  TIME_START;
+  for (int i = 0; i < NNN; ++i) {
+    prt[i] = malloc(i * 100);
+  }
+  TIME_END;
+
+  for (int i = 0; i < NNN; ++i) {
+    free(prt[i]);
+  }
+
+  TIME_RETURN;
+}
+
+long long cpp_memoryalloc_free(void) {
+  void *prt[NNN] = {};
+
+  for (int i = 0; i < NNN; ++i) {
+    prt[i] = malloc(i);
+  }
+
+  TIME_START;
+  for (int i = 0; i < NNN; ++i) {
+    free(prt[i]);
+  }
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long cpp_memoryalloc_free_b(void) {
+  unsynchronized_pool_resource pool = unsynchronized_pool_resource();
+
+  void *prt[NNN] = {};
+
+  for (int i = 0; i < NNN; ++i) {
+    prt[i] = pool.allocate(i);
+  }
+
+  TIME_START;
+  pool.release();
   TIME_END;
 
   TIME_RETURN;

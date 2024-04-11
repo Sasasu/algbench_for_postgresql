@@ -4,6 +4,7 @@
 #include "nodes/bitmapset.h"
 #include "nodes/pg_list.h"
 #include "utils/hsearch.h"
+#include "utils/memutils.h"
 #include "utils/palloc.h"
 
 #include <stdint.h>
@@ -94,8 +95,8 @@ static int list_cmp_int(const void *a, const void *b) {
 
 long long pg_list_sort(void) {
   List *a = NIL;
-  for (int i = 0; i < NNN * 100; i++) {
-    a = lappend_int(a, NNN * 100 - i);
+  for (int i = 0; i < NNN * 10; i++) {
+    a = lappend_int(a, NNN * 10 - i);
   }
 
   TIME_START;
@@ -259,8 +260,8 @@ long long pg_hash_delete(void) {
 }
 
 static Datum sum1(PG_FUNCTION_ARGS) { PG_RETURN_INT32(PG_GETARG_INT32(0)); }
-static Datum sum3(PG_FUNCTION_ARGS) {
-  PG_RETURN_INT32(PG_GETARG_INT32(0) + PG_GETARG_INT32(1) + PG_GETARG_INT32(2));
+static Datum sum2(PG_FUNCTION_ARGS) {
+  PG_RETURN_INT32(PG_GETARG_INT32(0) + PG_GETARG_INT32(2));
 }
 static Datum sum7(PG_FUNCTION_ARGS) {
   PG_RETURN_INT32(PG_GETARG_INT32(0) + PG_GETARG_INT32(1) + PG_GETARG_INT32(2) +
@@ -277,19 +278,19 @@ long long pg_functioncall_1(void) {
   Datum a = Int32GetDatum(1);
 
   TIME_START;
-  for (int i = 0; i < NNN * 10000; ++i) {
+  for (int i = 0; i < NNN; ++i) {
     x += DirectFunctionCall1(sum1, a);
   }
   TIME_END;
   TIME_RETURN;
 }
 
-long long pg_functioncall_3(void) {
+long long pg_functioncall_2(void) {
   Datum a = Int32GetDatum(1);
 
   TIME_START;
-  for (int i = 0; i < NNN * 10000; ++i) {
-    x += DirectFunctionCall3(sum3, a, a, a);
+  for (int i = 0; i < NNN; ++i) {
+    x += DirectFunctionCall2(sum2, a, a);
   }
   TIME_END;
   TIME_RETURN;
@@ -299,7 +300,7 @@ long long pg_functioncall_7(void) {
   Datum a = Int32GetDatum(1);
 
   TIME_START;
-  for (int i = 0; i < NNN * 10000; ++i) {
+  for (int i = 0; i < NNN; ++i) {
     x += DirectFunctionCall7(sum7, a, a, a, a, a, a, a);
   }
   TIME_END;
@@ -310,9 +311,91 @@ long long pg_functioncall_9(void) {
   Datum a = Int32GetDatum(1);
 
   TIME_START;
-  for (int i = 0; i < NNN * 10000; ++i) {
+  for (int i = 0; i < NNN; ++i) {
     x += DirectFunctionCall9(sum9, a, a, a, a, a, a, a, a, a);
   }
   TIME_END;
+  TIME_RETURN;
+}
+
+long long pg_memoryalloc_small(void) {
+  MemoryContext c =
+      AllocSetContextCreate(CurrentMemoryContext, "", ALLOCSET_DEFAULT_SIZES);
+  void *prt[NNN] = {};
+
+  MemoryContext old = MemoryContextSwitchTo(c);
+
+  TIME_START;
+  for (int i = 0; i < NNN; ++i) {
+    prt[i] = palloc(i);
+  }
+  TIME_END;
+
+  for (int i = 0; i < NNN; ++i) {
+    pfree(prt[i]);
+  }
+
+  MemoryContextSwitchTo(old);
+  TIME_RETURN;
+}
+
+long long pg_memoryalloc_big(void) {
+  MemoryContext c =
+      AllocSetContextCreate(CurrentMemoryContext, "", ALLOCSET_DEFAULT_SIZES);
+  void *prt[NNN] = {};
+
+  MemoryContext old = MemoryContextSwitchTo(c);
+
+  TIME_START;
+  for (int i = 0; i < NNN; ++i) {
+    prt[i] = palloc(i * 100);
+  }
+  TIME_END;
+
+  for (int i = 0; i < NNN; ++i) {
+    pfree(prt[i]);
+  }
+
+  MemoryContextSwitchTo(old);
+  TIME_RETURN;
+}
+
+long long pg_memoryalloc_free(void) {
+  MemoryContext c =
+      AllocSetContextCreate(CurrentMemoryContext, "", ALLOCSET_DEFAULT_SIZES);
+  void *prt[NNN] = {};
+
+  MemoryContext old = MemoryContextSwitchTo(c);
+
+  for (int i = 0; i < NNN; ++i) {
+    prt[i] = palloc(i);
+  }
+
+  TIME_START;
+  for (int i = 0; i < NNN; ++i) {
+    pfree(prt[i]);
+  }
+  TIME_END;
+
+  MemoryContextSwitchTo(old);
+  TIME_RETURN;
+}
+
+long long pg_memoryalloc_free_b(void) {
+  MemoryContext c =
+      AllocSetContextCreate(CurrentMemoryContext, "", ALLOCSET_DEFAULT_SIZES);
+  void *prt[NNN] = {};
+
+  MemoryContext old = MemoryContextSwitchTo(c);
+
+  for (int i = 0; i < NNN; ++i) {
+    prt[i] = palloc(i);
+  }
+
+  MemoryContextSwitchTo(old);
+  TIME_START;
+  MemoryContextDelete(c);
+  TIME_END;
+
   TIME_RETURN;
 }

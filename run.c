@@ -36,9 +36,13 @@ Datum run_bench(PG_FUNCTION_ARGS) {
       add(hash_get_scan),
       add(hash_delete),
       add(functioncall_1),
-      add(functioncall_3),
+      add(functioncall_2),
       add(functioncall_7),
       add(functioncall_9),
+      add(memoryalloc_small),
+      add(memoryalloc_big),
+      add(memoryalloc_free),
+      add(memoryalloc_free_b),
   };
 #undef add
 
