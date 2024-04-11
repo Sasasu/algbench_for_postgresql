@@ -26,6 +26,9 @@ Datum run_bench(PG_FUNCTION_ARGS) {
       add(bitmapset_compare),
       add(bitmapset_is_subset),
       add(bitmapset_add_member),
+      add(list_sort),
+      add(list_iter),
+      add(list_append),
   };
 #undef add
 

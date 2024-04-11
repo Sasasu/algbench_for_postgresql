@@ -1,6 +1,7 @@
 #include "postgres.h"
 
 #include "nodes/bitmapset.h"
+#include "nodes/pg_list.h"
 
 #include "run.h"
 
@@ -78,6 +79,65 @@ long long pg_bitmapset_add_member(void) {
   TIME_END
 
   bms_free(a);
+
+  TIME_RETURN;
+}
+
+static int list_cmp_int(const void *a, const void *b) {
+  return lfirst_int(*(const ListCell **)a) - lfirst_int(*(const ListCell **)b);
+}
+
+long long pg_list_sort(void) {
+  List *a = NIL;
+  for (int i = 0; i < NNN * 100; i++) {
+    a = lappend_int(a, NNN * 100 - i);
+  }
+
+  TIME_START;
+  list_qsort(a, list_cmp_int);
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+static void _pg_list_iter(List *a) {
+  ListCell *l;
+  foreach (l, a) {
+    x += lfirst_int(l);
+  }
+}
+
+long long pg_list_iter(void) {
+  List *a = NIL;
+  for (int i = 0; i < 1024; i++) {
+    a = lappend_int(a, i);
+  }
+
+  TIME_START;
+  for (int i = 0; i < NNN; ++i) {
+    _pg_list_iter(a);
+  }
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+static List *_pg_list_append(List *a) {
+  for (int i = 0; i < 1024; i++) {
+    a = lappend_int(a, i);
+  }
+
+  return a;
+}
+
+long long pg_list_append(void) {
+  List *a = NIL;
+
+  TIME_START
+  for (int i = 0; i < NNN / 10; ++i) {
+    a = _pg_list_append(a);
+  }
+  TIME_END;
 
   TIME_RETURN;
 }
