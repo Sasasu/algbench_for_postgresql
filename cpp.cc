@@ -1,12 +1,15 @@
 #include "run.h"
 
+#include <algorithm>
 #include <cstdint>
+#include <cstdlib>
 #include <list>
 #include <memory_resource>
 #include <tuple>
 #include <unordered_map>
 
 #include <boost/dynamic_bitset.hpp>
+#include <vector>
 
 using namespace std;
 using namespace boost;
@@ -307,7 +310,7 @@ long long cpp_memoryalloc_free(void) {
   TIME_RETURN;
 }
 
-long long cpp_memoryalloc_free_b(void) {
+long long cpp_memoryalloc_free_batch(void) {
   unsynchronized_pool_resource pool = unsynchronized_pool_resource();
 
   void *prt[NNN] = {};
@@ -318,6 +321,38 @@ long long cpp_memoryalloc_free_b(void) {
 
   TIME_START;
   pool.release();
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+static int int32cmp(const void *a, const void *b) {
+  return *(int *)a - *(int *)b;
+}
+
+long long cpp_sort_qsort(void) {
+  int x[NNN];
+
+  for (int i = 0; i < NNN; ++i) {
+    x[i] = i;
+  }
+
+  TIME_START;
+  qsort(x, NNN, sizeof(int), int32cmp);
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long cpp_sort_cppsort(void) {
+  vector<int> x;
+
+  for (int i = 0; i < NNN; ++i) {
+    x.push_back(NNN - i);
+  }
+
+  TIME_START;
+  sort(x.begin(), x.end());
   TIME_END;
 
   TIME_RETURN;

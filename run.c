@@ -42,7 +42,9 @@ Datum run_bench(PG_FUNCTION_ARGS) {
       add(memoryalloc_small),
       add(memoryalloc_big),
       add(memoryalloc_free),
-      add(memoryalloc_free_b),
+      add(memoryalloc_free_batch),
+      add(sort_qsort),
+      add(sort_cppsort),
   };
 #undef add
 

@@ -1,12 +1,17 @@
 #include "postgres.h"
 
+#include "catalog/pg_operator_d.h"
+#include "catalog/pg_type_d.h"
+#include "common/hashfn.h"
 #include "fmgr.h"
 #include "nodes/bitmapset.h"
 #include "nodes/pg_list.h"
 #include "utils/hsearch.h"
 #include "utils/memutils.h"
 #include "utils/palloc.h"
+#include "utils/tuplesort.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "run.h"
@@ -89,9 +94,23 @@ long long pg_bitmapset_add_member(void) {
   TIME_RETURN;
 }
 
-static int list_cmp_int(const void *a, const void *b) {
+#if PG_VERSION_NUM >= 130000
+#define list_qsort list_sort
+static int list_cmp(const ListCell *p1, const ListCell *p2) {
+  int v1 = lfirst_int(p1);
+  int v2 = lfirst_int(p2);
+
+  if (v1 < v2)
+    return -1;
+  if (v1 > v2)
+    return 1;
+  return 0;
+}
+#else
+static int list_cmp(const void *a, const void *b) {
   return lfirst_int(*(const ListCell **)a) - lfirst_int(*(const ListCell **)b);
 }
+#endif
 
 long long pg_list_sort(void) {
   List *a = NIL;
@@ -100,7 +119,7 @@ long long pg_list_sort(void) {
   }
 
   TIME_START;
-  list_qsort(a, list_cmp_int);
+  list_qsort(a, list_cmp);
   TIME_END;
 
   TIME_RETURN;
@@ -381,7 +400,7 @@ long long pg_memoryalloc_free(void) {
   TIME_RETURN;
 }
 
-long long pg_memoryalloc_free_b(void) {
+long long pg_memoryalloc_free_batch(void) {
   MemoryContext c =
       AllocSetContextCreate(CurrentMemoryContext, "", ALLOCSET_DEFAULT_SIZES);
   void *prt[NNN] = {};
@@ -399,3 +418,25 @@ long long pg_memoryalloc_free_b(void) {
 
   TIME_RETURN;
 }
+
+#ifndef TUPLESORT_RANDOMACCESS
+#define TUPLESORT_RANDOMACCESS 1
+#endif
+
+long long pg_sort_qsort(void) {
+  Tuplesortstate *state =
+      tuplesort_begin_datum(INT4OID, Int8LessOperator, InvalidOid, false, 100,
+                            NULL, TUPLESORT_RANDOMACCESS);
+
+  for (int i = 0; i < NNN; ++i) {
+    tuplesort_putdatum(state, Int32GetDatum(NNN - i), false);
+  }
+
+  TIME_START;
+  tuplesort_performsort(state);
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long pg_sort_cppsort(void) { return pg_sort_qsort(); }

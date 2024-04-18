@@ -1,6 +1,7 @@
 MODULE_big = benchmark
 EXTENSION = benchmark
 DATA = benchmark--1.0.0.sql
+with_llvm = no
 
 FILES += $(shell find . -name '*.c' -type f)
 OBJS += $(foreach FILE, $(FILES), $(subst .c,.o, $(FILE)))

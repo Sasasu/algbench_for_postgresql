@@ -33,9 +33,10 @@ add(functioncall_9);
 add(memoryalloc_small);
 add(memoryalloc_big);
 add(memoryalloc_free);
-add(memoryalloc_free_b);
+add(memoryalloc_free_batch);
 
-add(regex);
+add(sort_qsort);
+add(sort_cppsort);
 
 #undef add
 #ifdef __cplusplus
