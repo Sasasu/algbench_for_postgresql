@@ -45,6 +45,7 @@ Datum run_bench(PG_FUNCTION_ARGS) {
       add(memoryalloc_free_batch),
       add(sort_qsort),
       add(sort_cppsort),
+      add(hash_vs_btree_get_rand),
   };
 #undef add
 

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <list>
+#include <map>
 #include <memory_resource>
 #include <tuple>
 #include <unordered_map>
@@ -353,6 +354,21 @@ long long cpp_sort_cppsort(void) {
 
   TIME_START;
   sort(x.begin(), x.end());
+  TIME_END;
+
+  TIME_RETURN;
+}
+
+long long cpp_hash_vs_btree_get_rand(void) {
+  map<int32_t, int32_t> a;
+  for (int i = 0; i < NNN; ++i) {
+    a[i] = i;
+  }
+
+  TIME_START;
+  for (int i = 0; i < NNN; ++i) {
+    x += a[i];
+  }
   TIME_END;
 
   TIME_RETURN;

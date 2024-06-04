@@ -440,3 +440,25 @@ long long pg_sort_qsort(void) {
 }
 
 long long pg_sort_cppsort(void) { return pg_sort_qsort(); }
+
+long long pg_hash_vs_btree_get_rand(void) {
+  HASHCTL ctl = {
+      .keysize = sizeof(int32_t),
+      .entrysize = sizeof(int32_t),
+      .hcxt = CurrentMemoryContext,
+      .hash = tag_hash,
+  };
+  HTAB *htab =
+      hash_create("htab", NNN, &ctl, HASH_ELEM | HASH_CONTEXT | HASH_FUNCTION);
+
+  _pg_hash_set(htab);
+
+  TIME_START;
+  for (int i = 0; i < NNN; ++i) {
+    int64_t *p = hash_search(htab, &i, HASH_FIND, NULL);
+    x += *p;
+  }
+  TIME_END;
+
+  TIME_RETURN;
+}

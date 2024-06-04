@@ -38,6 +38,8 @@ add(memoryalloc_free_batch);
 add(sort_qsort);
 add(sort_cppsort);
 
+add(hash_vs_btree_get_rand);
+
 #undef add
 #ifdef __cplusplus
 }
@@ -47,7 +49,7 @@ add(sort_cppsort);
 //
 // regex
 
-#define NNN 10000
+#define NNN 1000000
 
 #define TIME_START                                                             \
   sched_yield();                                                               \
